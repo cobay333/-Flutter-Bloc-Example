@@ -34,6 +34,9 @@ class MovieDetail extends StatefulWidget {
 }
 
 class MovieDetailState extends State<MovieDetail> {
+
+  MovieDetailBloc _movieDetailBloc;
+
   final posterUrl;
   final description;
   final releaseDate;
@@ -61,17 +64,16 @@ class MovieDetailState extends State<MovieDetail> {
 
   @override
   void initState() {
+    _movieDetailBloc = MovieDetailBloc();
+    _movieDetailBloc?.fetchTrailersById(movieId);
     super.initState();
-    bloc.fetchTrailersById(movieId);
   }
 
   @override
   void dispose() {
-    bloc.dispose();
-
     super.dispose();
+    _movieDetailBloc?.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +149,7 @@ class MovieDetailState extends State<MovieDetail> {
                 ),
                 Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
                 StreamBuilder(
-                  stream: bloc.movieTrailers,
+                  stream: _movieDetailBloc?.movieTrailers,
                   builder:
                       (context, AsyncSnapshot<Future<TrailerModel>> snapshot) {
                     if (snapshot.hasData) {
