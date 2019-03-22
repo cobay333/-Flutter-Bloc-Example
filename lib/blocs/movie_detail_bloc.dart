@@ -33,4 +33,4 @@ class MovieDetailBloc {
   }
 
 }
-final bloc = MovieDetailBloc();
+

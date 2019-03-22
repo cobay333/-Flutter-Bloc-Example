@@ -12,15 +12,20 @@ class MovieList extends StatefulWidget {
 }
 
 class MovieListState extends State<MovieList> {
+
+  MoviesBloc _moviesBloc;
+
   @override
   void initState() {
+    _moviesBloc = MoviesBloc();
+    _moviesBloc.fetchAllMovies();
     super.initState();
-    bloc.fetchAllMovies();
   }
 
   @override
   void dispose() {
-    bloc.dispose();
+    _moviesBloc?.dispose();
+    _moviesBloc = null;
     super.dispose();
   }
 
@@ -31,7 +36,7 @@ class MovieListState extends State<MovieList> {
         title: Text('Popular Movies'),
       ),
       body: StreamBuilder(
-        stream: bloc.allMovies,
+        stream: _moviesBloc.allMovies,
         builder: (context, AsyncSnapshot<ItemModel> snapshot) {
           if (snapshot.hasData) {
             return buildList(snapshot);
