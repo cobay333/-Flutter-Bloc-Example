@@ -37,6 +37,7 @@ class MovieApiProvider {
     await client.get("$_baseUrl/$movieId/videos?api_key=$_apiKey");
 
     if (response.statusCode == 200) {
+      print(json.decode(response.body));
       return TrailerModel.fromJson(json.decode(response.body));
     } else {
       throw Exception('Failed to load trailers');

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../blocs/movie_detail_bloc.dart';
+
 //import '../blocs/movie_detail_bloc_provider.dart';
 import '../models/trailer_model.dart';
+import '../models/item_model.dart';
 
 class MovieDetail extends StatefulWidget {
   final posterUrl;
@@ -34,15 +36,14 @@ class MovieDetail extends StatefulWidget {
 }
 
 class MovieDetailState extends State<MovieDetail> {
-
   MovieDetailBloc _movieDetailBloc;
 
-  final posterUrl;
-  final description;
-  final releaseDate;
-  final String title;
-  final String voteAverage;
-  final int movieId;
+  String posterUrl;
+  String description;
+  String releaseDate;
+  String title;
+  String voteAverage;
+  int movieId;
 
 //  MovieDetailBloc bloc;
 
@@ -66,6 +67,7 @@ class MovieDetailState extends State<MovieDetail> {
   void initState() {
     _movieDetailBloc = MovieDetailBloc();
     _movieDetailBloc?.fetchTrailersById(movieId);
+    _movieDetailBloc.fetchAllMovies();
     super.initState();
   }
 
@@ -97,7 +99,7 @@ class MovieDetailState extends State<MovieDetail> {
               ),
             ];
           },
-          body: Padding(
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(10.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,10 +174,59 @@ class MovieDetailState extends State<MovieDetail> {
                     }
                   },
                 ),
+                Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
+                Text(
+                  "Similar Video",
+                  style: TextStyle(
+                    fontSize: 25.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
+                StreamBuilder(
+                  stream: _movieDetailBloc.allMovies,
+                  builder: (context, AsyncSnapshot<ItemModel> snapshot) {
+                    if (snapshot.hasData) {
+                      return listFilmSimilar(snapshot);
+                    } else if (snapshot.hasError) {
+                      return Text(snapshot.error.toString());
+                    }
+                    return Center(child: CircularProgressIndicator());
+                  },
+                ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget listFilmSimilar(AsyncSnapshot<ItemModel> snapshot) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      height: 120.0,
+      child: ListView.builder(
+        itemCount: snapshot.data.results.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (BuildContext ctxt, int index) {
+          return GestureDetector(
+            child: Container(
+
+              margin: EdgeInsets.only(left: 5, right: 5),
+              child: FadeInImage.assetNetwork(
+                fadeInCurve: Curves.bounceIn,
+                image:
+                    'https://image.tmdb.org/t/p/w185${snapshot.data.results[index].poster_path}',
+                fit: BoxFit.cover,
+                placeholder: Icons.image.toString(),
+                width: 120,
+                height: 120,
+              ),
+            ),
+            onTap: () => updateInfoMovie(snapshot.data, index),
+          );
+        },
       ),
     );
   }
@@ -223,5 +274,17 @@ class MovieDetailState extends State<MovieDetail> {
         ],
       ),
     );
+  }
+
+  updateInfoMovie(ItemModel data, int index) {
+    setState(() {
+      this.title = data.results[index].title;
+      this.posterUrl = data.results[index].backdrop_path;
+      this.description = data.results[index].overview;
+      this.releaseDate = data.results[index].release_date;
+      this.voteAverage = data.results[index].vote_average.toString();
+      this.movieId = data.results[index].id;
+    });
+    _movieDetailBloc?.fetchTrailersById(movieId);
   }
 }
